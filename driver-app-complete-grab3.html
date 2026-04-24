@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>그랩도우미</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #080e14;
+  --surface:  #0f1923;
+  --card:     #131f2e;
+  --border:   rgba(42,255,122,0.12);
+  --neon:     #2aff7a;
+  --neon2:    #00e5ff;
+  --neon-glow:rgba(42,255,122,0.22);
+  --red:      #ff3d5a;
+  --dim:      rgba(42,255,122,0.5);
+  --txt:      #c8ecd6;
+  --txt-muted:#4a7a5e;
+  --txt-label:#5ecb8a;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--bg);font-family:'Noto Sans KR',sans-serif;color:var(--txt);}
+
+/* ── 헤더 ── */
+.hdr{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 14px;
+  background:linear-gradient(90deg,rgba(42,255,122,0.06),transparent);
+  border-bottom:1px solid var(--border);
+}
+.hdr img{width:34px;height:34px;border-radius:8px;flex-shrink:0;}
+.hdr-txt h1{
+  font-size:1rem;font-weight:900;letter-spacing:1.5px;
+  background:linear-gradient(90deg,var(--neon),var(--neon2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hdr-txt p{font-size:0.65rem;color:var(--txt-muted);margin-top:1px;}
+
+/* ── 탭 ── */
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:12px 12px 10px;}
+.tab{
+  padding:10px 0;text-align:center;font-size:0.85rem;font-weight:700;
+  border:1.5px solid rgba(42,255,122,0.2);color:var(--txt-muted);
+  background:transparent;cursor:pointer;transition:all .2s;
+}
+.tab:first-child{border-radius:10px 0 0 10px;}
+.tab:last-child{border-radius:0 10px 10px 0;border-left:none;}
+.tab.on{
+  background:rgba(42,255,122,0.1);border-color:var(--neon);
+  color:var(--neon);text-shadow:0 0 8px rgba(42,255,122,0.4);
+}
+
+/* ── 섹션 패널 ── */
+.panel{margin:0 12px 10px;background:var(--card);border-radius:12px;border:1px solid var(--border);padding:14px;}
+
+/* ── 라벨 ── */
+.lbl{font-size:0.72rem;font-weight:700;color:var(--txt-label);letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;display:block;}
+
+/* ── 인풋 ── */
+.inp{
+  width:100%;padding:11px 13px;
+  background:var(--surface);border:1.5px solid rgba(42,255,122,0.15);
+  border-radius:9px;color:var(--txt);font-size:0.92rem;
+  font-family:'Noto Sans KR',sans-serif;
+  transition:border-color .2s;margin-bottom:11px;
+}
+.inp::placeholder{color:var(--txt-muted);}
+.inp:focus{outline:none;border-color:var(--neon);box-shadow:0 0 0 3px rgba(42,255,122,0.08);}
+select.inp option{background:var(--surface);}
+
+/* ── 인포 칩 ── */
+.info-chip{
+  display:none;align-items:center;gap:6px;
+  padding:7px 11px;margin-bottom:11px;
+  background:rgba(42,255,122,0.06);border:1px solid rgba(42,255,122,0.2);
+  border-radius:8px;font-size:0.78rem;color:var(--txt-label);
+}
+.info-chip.show{display:flex;}
+
+/* ── 라디오 단위 ── */
+.unit-row{display:flex;gap:10px;margin-bottom:11px;}
+.unit-opt{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+  padding:9px 0;border-radius:9px;border:1.5px solid rgba(42,255,122,0.15);
+  background:transparent;cursor:pointer;color:var(--txt-muted);font-size:0.82rem;font-weight:600;
+  transition:all .2s;
+}
+.unit-opt input{display:none;}
+.unit-opt.on{background:rgba(42,255,122,0.1);border-color:var(--neon);color:var(--neon);}
+.unit-dot{width:8px;height:8px;border-radius:50%;border:2px solid currentColor;transition:all .2s;}
+.unit-opt.on .unit-dot{background:var(--neon);border-color:var(--neon);}
+
+/* ── 체크박스 ── */
+.chk-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;cursor:pointer;}
+.chk-row input{width:15px;height:15px;accent-color:var(--neon);}
+.chk-row span{font-size:0.82rem;color:var(--txt-muted);}
+
+/* ── 지역 그리드 ── */
+.region-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:5px;
+  margin-bottom:12px;
+}
+.rgn{
+  padding:7px 4px;text-align:center;font-size:0.78rem;font-weight:600;
+  background:var(--surface);border:1.5px solid rgba(42,255,122,0.1);
+  border-radius:8px;cursor:pointer;color:var(--txt-muted);transition:all .15s;
+}
+.rgn input{display:none;}
+.rgn.on{background:rgba(42,255,122,0.1);border-color:var(--neon);color:var(--neon);}
+
+/* ── 메인 버튼 ── */
+.gen-btn{
+  width:100%;padding:13px;border:none;border-radius:10px;
+  background:linear-gradient(135deg,#1acc60,#00b8cc);
+  color:#000;font-size:0.92rem;font-weight:900;letter-spacing:.5px;
+  cursor:pointer;box-shadow:0 4px 20px rgba(42,255,122,0.25);
+  transition:all .2s;font-family:'Noto Sans KR',sans-serif;
+}
+.gen-btn:active{transform:scale(.98);box-shadow:none;}
+
+/* ── 가격 편집 ── */
+.pe-title{font-size:0.78rem;font-weight:700;color:var(--txt-label);letter-spacing:.8px;margin-bottom:12px;text-transform:uppercase;}
+
+/* 비율 조정 */
+.pct-box{
+  background:var(--surface);border:1px solid rgba(0,229,255,0.15);
+  border-radius:10px;padding:12px;margin-bottom:10px;
+}
+.pct-box-lbl{font-size:0.7rem;font-weight:700;color:var(--neon2);letter-spacing:.7px;margin-bottom:10px;display:block;}
+.pct-btns{display:grid;grid-template-columns:52px 1fr 52px;gap:7px;margin-bottom:8px;align-items:center;}
+.pct-inp-wrap{display:flex;gap:6px;}
+.pct-inp-wrap .inp{margin-bottom:0;flex:1;text-align:center;padding:10px 8px;font-size:0.85rem;}
+.pct-apply{
+  padding:10px 11px;border-radius:8px;white-space:nowrap;
+  background:rgba(0,229,255,0.12);border:1.5px solid rgba(0,229,255,0.35);
+  color:var(--neon2);font-size:0.78rem;font-weight:700;cursor:pointer;
+  font-family:'Noto Sans KR',sans-serif;
+}
+
+/* 기준가 */
+.bulk-box{
+  background:var(--surface);border:1px solid rgba(42,255,122,0.15);
+  border-radius:10px;padding:12px;margin-bottom:10px;
+}
+.bulk-box-lbl{font-size:0.7rem;font-weight:700;color:var(--neon);letter-spacing:.7px;margin-bottom:10px;display:block;}
+.bulk-inp{
+  width:100%;padding:11px;margin-bottom:8px;
+  background:var(--card);border:1.5px solid rgba(42,255,122,0.2);
+  border-radius:9px;color:var(--neon);font-size:1rem;font-weight:700;
+  text-align:center;font-family:'Noto Sans KR',sans-serif;
+}
+.bulk-inp::placeholder{color:rgba(42,255,122,0.25);font-weight:400;font-size:0.82rem;}
+.bulk-inp:focus{outline:none;border-color:var(--neon);}
+.bulk-btns{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1.5fr;gap:6px;}
+
+/* 공통 소형 버튼 */
+.sbtn{
+  padding:10px 0;border:none;border-radius:8px;font-size:0.82rem;
+  font-weight:700;cursor:pointer;text-align:center;transition:opacity .15s;
+  font-family:'Noto Sans KR',sans-serif;
+}
+.sbtn:active{opacity:.7;}
+.sbtn.r{background:rgba(255,61,90,0.85);color:#fff;}
+.sbtn.r2{background:rgba(200,30,60,0.85);color:#fff;}
+.sbtn.g2{background:rgba(0,160,80,0.9);color:#fff;}
+.sbtn.g{background:var(--neon);color:#000;}
+.sbtn.set{background:linear-gradient(135deg,#1acc60,#00b8cc);color:#000;font-weight:900;}
+.pct-sbtn{padding:10px 0;border:none;border-radius:8px;font-size:0.88rem;font-weight:700;cursor:pointer;text-align:center;font-family:'Noto Sans KR',sans-serif;}
+.pct-sbtn.r{background:rgba(255,61,90,0.85);color:#fff;}
+.pct-sbtn.g{background:var(--neon);color:#000;}
+
+/* 삭제 버튼 */
+.del-sel-btn{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:7px 12px;margin-bottom:9px;
+  background:rgba(255,61,90,0.1);border:1px solid rgba(255,61,90,0.3);
+  color:#ff6b80;border-radius:7px;font-size:0.76rem;font-weight:700;cursor:pointer;
+  font-family:'Noto Sans KR',sans-serif;
+}
+
+/* 가격 테이블 */
+.price-tbl{
+  border:1px solid var(--border);border-radius:10px;
+  overflow:hidden;max-height:360px;overflow-y:auto;
+}
+.price-tbl::-webkit-scrollbar{width:4px;}
+.price-tbl::-webkit-scrollbar-thumb{background:rgba(42,255,122,0.3);border-radius:2px;}
+.pr{
+  display:grid;grid-template-columns:1fr 76px 30px 30px;
+  gap:5px;padding:9px 10px;
+  border-bottom:1px solid rgba(42,255,122,0.06);
+  align-items:center;cursor:pointer;transition:background .1s;
+}
+.pr:last-child{border-bottom:none;}
+.pr.hi{background:rgba(42,255,122,0.05);}
+.pr.md{background:rgba(255,210,40,0.04);}
+.pr.lo{background:rgba(255,130,0,0.03);}
+.pr.av{background:rgba(255,61,90,0.04);}
+.pr.sel{background:rgba(0,229,255,0.08)!important;border-left:2px solid var(--neon2);}
+.pr:active{background:rgba(42,255,122,0.06)!important;}
+.pr-name{font-size:0.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--txt);}
+.pr-badge{
+  display:inline-block;padding:1px 5px;border-radius:6px;
+  font-size:0.6rem;font-weight:700;margin-left:3px;vertical-align:middle;
+}
+.bh{background:rgba(42,255,122,0.15);color:var(--neon);}
+.bm{background:rgba(255,210,40,0.15);color:#ffd028;}
+.bl{background:rgba(255,130,0,0.15);color:#ff8800;}
+.ba{background:rgba(255,61,90,0.15);color:#ff3d5a;}
+.pr input[type=number]{
+  width:100%;padding:5px 6px;text-align:right;font-size:0.82rem;font-weight:700;
+  background:rgba(42,255,122,0.06);border:1px solid rgba(42,255,122,0.15);
+  border-radius:5px;color:var(--neon);margin-bottom:0;
+  font-family:'Noto Sans KR',sans-serif;
+}
+.pr input[type=number]:focus{outline:none;border-color:var(--neon);}
+.ic-btn{
+  padding:5px 0;border-radius:5px;font-size:0.72rem;
+  font-weight:700;cursor:pointer;text-align:center;border:none;
+  font-family:'Noto Sans KR',sans-serif;
+}
+.ic-ok{background:rgba(42,255,122,0.12);color:var(--neon);}
+.ic-del{background:rgba(255,61,90,0.12);color:#ff6b80;}
+
+/* ── 통계 ── */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.stat{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:10px;padding:10px;text-align:center;
+}
+.stat-n{font-size:1.4rem;font-weight:900;color:var(--neon);line-height:1.2;}
+.stat-l{font-size:0.7rem;color:var(--txt-muted);margin-top:3px;}
+
+/* ── 결과 ── */
+.res-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.res-hdr span{font-size:0.78rem;font-weight:700;color:var(--txt-label);letter-spacing:.5px;}
+.copy-btn{
+  padding:7px 14px;border-radius:7px;font-size:0.78rem;font-weight:700;
+  background:rgba(42,255,122,0.1);border:1.5px solid rgba(42,255,122,0.3);
+  color:var(--neon);cursor:pointer;font-family:'Noto Sans KR',sans-serif;
+}
+.res-area{
+  width:100%;min-height:120px;padding:11px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:9px;color:var(--neon);
+  font-family:'Courier New',monospace;font-size:0.78rem;
+  resize:vertical;
+}
+.hidden{display:none!important;}
+</style>
+</head>
+<body>
+
+<!-- 헤더 -->
+<div class="hdr">
+  <img src="data:image/png;base64,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" alt="">
+  <div class="hdr-txt">
+    <h1>그랩도우미</h1>
+    <p>전국 시/군/구 읍면동 완벽 지원</p>
+  </div>
+</div>
+
+<!-- 탭 -->
+<div class="tabs">
+  <button class="tab on" onclick="switchMode('local')">단거리 (시/군/구)</button>
+  <button class="tab" onclick="switchMode('regional')">중장거리 (전국)</button>
+</div>
+
+<!-- 단거리 -->
+<div id="localMode" class="panel">
+  <span class="lbl">목적지 시 / 군 입력</span>
+  <input class="inp" type="text" id="localEnd" placeholder="예: 부산, 밀양, 양산, 창원…"
+    list="cityList" oninput="onCityInput()" autocomplete="off">
+  <datalist id="cityList"></datalist>
+
+  <div class="info-chip" id="infoBox">
+    <span id="infoText"></span>
+  </div>
+
+  <span class="lbl">출력 단위</span>
+  <div class="unit-row">
+    <label class="unit-opt" id="optGu" onclick="setUnit('gu')">
+      <input type="radio" name="unitMode" value="gu">
+      <span class="unit-dot"></span>시/군/구
+    </label>
+    <label class="unit-opt on" id="optDong" onclick="setUnit('dong')">
+      <input type="radio" name="unitMode" value="dong" checked>
+      <span class="unit-dot"></span>읍/면/동
+    </label>
+  </div>
+
+  <div id="guSelectWrap" class="hidden">
+    <span class="lbl">구 선택</span>
+    <select class="inp" id="guSelect" onchange="onGuChange()" style="margin-bottom:11px"></select>
+  </div>
+
+  <label class="chk-row">
+    <input type="checkbox" id="includePrice" checked>
+    <span>가격 포함</span>
+  </label>
+  <button class="gen-btn" onclick="generateLocal()">📍 추천 목록 생성</button>
+</div>
+
+<!-- 중장거리 -->
+<div id="regionalMode" class="panel hidden">
+  <span class="lbl">출발지</span>
+  <input class="inp" type="text" id="regionalStart" placeholder="예: 창원시, 밀양시">
+
+  <span class="lbl">지역권 선택</span>
+  <div class="region-grid" id="regionGrid">
+    <label class="rgn on" onclick="toggleRgn(this)"><input type="checkbox" value="부산광역시" checked class="rc"><span>부산</span></label>
+    <label class="rgn" onclick="toggleRgn(this)"><input type="checkbox" value="서울특별시" class="rc"><span>서울</span></label>
+    <label class="rgn" onclick="toggleRgn(this)"><input type="checkbox" value="대구광역시" class="rc"><span>대구</span></label>
+    <label class="rgn" onclick="toggleRgn(this)"><input type="checkbox" value="인천광역시" class="rc"><span>인천</span></label>
+    <label class="rgn" onclick="toggleRgn(this)"><input type="checkbox" value="광주광역시" class="rc"><span>광주</span></label>
+    <label class="rgn" onclick="toggleRgn(this)"><input type="checkbox" value="대전광역시" class="rc"><span>대전</span></label>
+    <label class="rgn" onclick="toggleRgn(this)"><input type="checkbox" value="울산광역시" class="rc"><span>울산</span></label>
+    <label class="rgn" onclick="toggleRgn(this)"><input type="checkbox" value="세종특별자치시" class="rc"><span>세종</span></label>
+    <label class="rgn" onclick="toggleRgn(this)"><input type="checkbox" value="경기도" class="rc"><span>경기</span></label>
+    <label class="rgn" onclick="toggleRgn(this)"><input type="checkbox" value="강원특별자치도" class="rc"><span>강원</span></label>
+    <label class="rgn" onclick="toggleRgn(this)"><input type="checkbox" value="충청북도" class="rc"><span>충북</span></label>
+    <label class="rgn" onclick="toggleRgn(this)"><input type="checkbox" value="충청남도" class="rc"><span>충남</span></label>
+    <label class="rgn" onclick="toggleRgn(this)"><input type="checkbox" value="전북특별자치도" class="rc"><span>전북</span></label>
+    <label class="rgn" onclick="toggleRgn(this)"><input type="checkbox" value="전라남도" class="rc"><span>전남</span></label>
+    <label class="rgn" onclick="toggleRgn(this)"><input type="checkbox" value="경상북도" class="rc"><span>경북</span></label>
+    <label class="rgn on" onclick="toggleRgn(this)"><input type="checkbox" value="경상남도" checked class="rc"><span>경남</span></label>
+    <label class="rgn" onclick="toggleRgn(this)"><input type="checkbox" value="제주특별자치도" class="rc"><span>제주</span></label>
+  </div>
+
+  <label class="chk-row">
+    <input type="checkbox" id="regionalIncludePrice" checked>
+    <span>가격 포함</span>
+  </label>
+  <button class="gen-btn" onclick="generateRegional()">🗺 추천 목록 생성</button>
+</div>
+
+<!-- 가격 편집 -->
+<div id="priceEditor" class="panel hidden">
+  <p class="pe-title">💰 가격 편집</p>
+
+  <!-- 비율 조정 -->
+  <div class="pct-box">
+    <span class="pct-box-lbl">📊 비율 조정</span>
+    <div class="pct-btns">
+      <button class="pct-sbtn r" onclick="adjustPrices(-10)">-10%</button>
+      <div class="pct-inp-wrap">
+        <input class="inp" type="number" id="adjustPercent" placeholder="직접입력 (%)">
+        <button class="pct-apply" onclick="applyCustomPercent()">적용</button>
+      </div>
+      <button class="pct-sbtn g" onclick="adjustPrices(10)">+10%</button>
+    </div>
+  </div>
+
+  <!-- 기준가 일괄 -->
+  <div class="bulk-box">
+    <span class="bulk-box-lbl">💵 기준가 일괄 적용</span>
+    <input class="bulk-inp" type="number" id="bulkBasePrice" placeholder="기준가 입력 (천원)">
+    <div class="bulk-btns">
+      <button class="sbtn r"  onclick="applyBulkPrice(-5)">-5</button>
+      <button class="sbtn r2" onclick="applyBulkPrice(-1)">-1</button>
+      <button class="sbtn g2" onclick="applyBulkPrice(1)">+1</button>
+      <button class="sbtn g"  onclick="applyBulkPrice(5)">+5</button>
+      <button class="sbtn set" onclick="setBulkPrice()">전체적용</button>
+    </div>
+  </div>
+
+  <button class="del-sel-btn" onclick="deleteSelected()">🗑 선택 삭제</button>
+  <div class="price-tbl" id="priceTable"></div>
+</div>
+
+<!-- 결과 -->
+<div id="resultSection" class="panel hidden">
+  <div class="stats">
+    <div class="stat"><div class="stat-n" id="totalCount">0</div><div class="stat-l">총 추천지</div></div>
+    <div class="stat"><div class="stat-n" id="avgPrice">0</div><div class="stat-l">평균 (천원)</div></div>
+  </div>
+  <div class="res-hdr">
+    <span>추천 목적지 목록</span>
+    <button class="copy-btn" onclick="copyResult()">📋 복사</button>
+  </div>
+  <textarea class="res-area" id="resultArea" readonly></textarea>
+</div>
+
+<script>
+const KOREA_DATA = {"metadata":{"title":"대한민국 전국 법정동 데이터","source":"국토교통부 법정동코드","updated":"2025-08-07","total_cities":229,"total_dongs":3500},"data":{"서울특별시":{"종로구":{"dongs":["청운동","신교동","궁정동","효자동","창성동","통의동","적선동","통인동","누상동","누하동","옥인동","체부동","필운동","내자동","사직동","도렴동","당주동","내수동","세종로","신문로1가","신문로2가","청진동","서린동","수송동","중학동","종로1가","공평동","관훈동","견지동","와룡동","권농동","운니동","익선동","경운동","관철동","인사동","낙원동","종로2가","팔판동","삼청동","안국동","소격동","화동","사간동","송현동","가회동","재동","계동","원서동","훈정동","묘동","봉익동","돈의동","장사동","관수동","종로3가","인의동","예지동","원남동","연지동","종로4가","효제동","종로5가","종로6가","이화동","연건동","충신동","동숭동","혜화동","명륜1가","명륜2가","명륜3가","명륜4가","창신동","숭인동","교남동","평동","송월동","홍파동","교북동","행촌동","구기동","평창동","부암동","홍지동","신영동","무악동"],"pref":"high"},"중구":{"dongs":["무교동","다동","태평로1가","을지로1가","을지로2가","남대문로1가","삼각동","수하동","장교동","수표동","소공동","남창동","북창동","태평로2가","남대문로2가","남대문로3가","남대문로4가","남대문로5가","봉래동1가","봉래동2가","회현동1가","회현동2가","회현동3가","충무로1가","충무로2가","명동1가","명동2가","남산동1가","남산동2가","남산동3가","저동1가","충무로4가","충무로5가","인현동1가","인현동2가","예관동","묵정동","필동1가","필동2가","필동3가","남학동","주자동","예장동","장충동1가","장충동2가","광희동1가","광희동2가","쌍림동","을지로6가","을지로7가","을지로4가","을지로5가","을지로3가","입정동","산림동","충무로3가","초동","인현동","저동2가","오장동","흥인동","무학동","황학동","서소문동","정동","순화동","의주로1가","충정로1가","중림동","의주로2가"],"pref":"high"},"용산구":{"dongs":["후암동","용산동2가","용산동4가","갈월동","남영동","용산동1가","동자동","서계동","청파동1가","청파동2가","청파동3가","원효로1가","원효로2가","신창동","산천동","청암동","용문동","효창동","도화동","용강동","한강로1가","한강로2가","한강로3가","이촌동","이태원동","한남동","동빙고동","서빙고동","주성동","용산동3가","용산동5가","용산동6가","문배동","원효로3가","원효로4가","보광동"],"pref":"high"},"성동구":{"dongs":["상왕십리동","하왕십리동","홍익동","도선동","마장동","사근동","행당동","응봉동","금호동1가","금호동2가","금호동3가","금호동4가","옥수동","성수동1가","성수동2가","송정동","용답동"],"pref":"medium"},"광진구":{"dongs":["중곡동","능동","구의동","광장동","자양동","화양동"],"pref":"high"},"동대문구":{"dongs":["용두동","제기동","전농동","답십리동","장안동","청량리동","회기동","휘경동","이문동"],"pref":"medium"},"중랑구":{"dongs":["면목동","상봉동","중화동","묵동","망우동","신내동"],"pref":"medium"},"성북구":{"dongs":["성북동","돈암동","동소문동","삼선동","동선동","안암동","보문동","정릉동","길음동","종암동","하월곡동","상월곡동","장위동","석관동"],"pref":"medium"},"강북구":{"dongs":["미아동","번동","수유동","우이동"],"pref":"medium"},"도봉구":{"dongs":["쌍문동","방학동","창동","도봉동"],"pref":"medium"},"노원구":{"dongs":["월계동","공릉동","하계동","상계동","중계동"],"pref":"medium"},"은평구":{"dongs":["수색동","녹번동","불광동","갈현동","구산동","대조동","응암동","역촌동","신사동","증산동","진관동"],"pref":"medium"},"서대문구":{"dongs":["충정로2가","충정로3가","합동","미근동","냉천동","천연동","옥천동","영천동","현저동","북아현동","홍제동","대현동","대신동","신촌동","봉원동","창천동","연희동","홍은동","북가좌동","남가좌동"],"pref":"high"},"마포구":{"dongs":["아현동","공덕동","신공덕동","도화동","용강동","토정동","마포동","대흥동","염리동","노고산동","신수동","현석동","구수동","창전동","상수동","하중동","신정동","당인동","서교동","동교동","합정동","망원동","연남동","성산동","중동","상암동"],"pref":"high"},"양천구":{"dongs":["신정동","목동","신월동"],"pref":"medium"},"강서구":{"dongs":["염창동","등촌동","화곡동","가양동","마곡동","내발산동","외발산동","공항동","방화동","개화동","과해동","오곡동","오쇠동"],"pref":"medium"},"구로구":{"dongs":["신도림동","구로동","가리봉동","고척동","개봉동","오류동","궁동","온수동","천왕동","항동"],"pref":"medium"},"금천구":{"dongs":["가산동","독산동","시흥동"],"pref":"medium"},"영등포구":{"dongs":["영등포동","영등포동1가","영등포동2가","영등포동3가","영등포동4가","영등포동5가","영등포동6가","영등포동7가","영등포동8가","여의도동","당산동1가","당산동2가","당산동3가","당산동4가","당산동5가","당산동6가","도림동","문래동1가","문래동2가","문래동3가","문래동4가","문래동5가","문래동6가","양평동1가","양평동2가","양평동3가","양평동4가","양평동5가","양평동6가","신길동","대림동","당산동","양평동","문래동"],"pref":"high"},"동작구":{"dongs":["노량진동","상도동","본동","흑석동","동작동","사당동","대방동","신대방동"],"pref":"medium"},"관악구":{"dongs":["봉천동","신림동","남현동"],"pref":"medium"},"서초구":{"dongs":["방배동","양재동","우면동","원지동","잠원동","반포동","서초동","내곡동","염곡동","신원동"],"pref":"high"},"강남구":{"dongs":["역삼동","개포동","청담동","삼성동","대치동","신사동","논현동","압구정동","세곡동","자곡동","율현동","일원동","수서동"],"pref":"high"},"송파구":{"dongs":["잠실동","신천동","풍납동","송파동","석촌동","삼전동","가락동","문정동","장지동","방이동","오금동","거여동","마천동"],"pref":"high"},"강동구":{"dongs":["명일동","고덕동","상일동","길동","둔촌동","암사동","성내동","천호동","강일동"],"pref":"medium"}},"부산광역시":{"중구":{"dongs":["중앙동","동광동","대청동","보수동","부평동","광복동","남포동","영주동"],"pref":"high"},"서구":{"dongs":["동대신동","서대신동","부민동","아미동","충무동","남부민동","암남동"],"pref":"low"},"동구":{"dongs":["초량동","수정동","좌천동","범일동","범천동","좌성동"],"pref":"low"},"영도구":{"dongs":["남항동","영선동","신선동","봉래동","청학동","동삼동"],"pref":"avoid"},"부산진구":{"dongs":["부전동","연지동","초읍동","양정동","전포동","부암동","당감동","가야동","개금동","범천동"],"pref":"high"},"동래구":{"dongs":["수민동","복산동","명륜동","온천동","사직동","안락동","명장동"],"pref":"high"},"남구":{"dongs":["대연동","용호동","용당동","감만동","우암동","문현동"],"pref":"medium"},"북구":{"dongs":["구포동","금곡동","화명동","덕천동","만덕동"],"pref":"medium"},"해운대구":{"dongs":["우동","중동","좌동","송정동","재송동","반여동","반송동"],"pref":"high"},"사하구":{"dongs":["하단동","당리동","사하동","괴정동","감천동","구평동","신평동","장림동"],"pref":"low"},"금정구":{"dongs":["부곡동","금사동","금성동","서동","남산동","구서동","장전동","선두구동","청룡노포동","회동동"],"pref":"medium"},"강서구":{"dongs":["대저동","강동동","명지동","녹산동","가덕도동"],"pref":"avoid"},"연제구":{"dongs":["거제동","연산동"],"pref":"medium"},"수영구":{"dongs":["남천동","광안동","민락동","망미동"],"pref":"high"},"사상구":{"dongs":["삼락동","모라동","덕포동","괘법동","주례동","감전동","학장동","엄궁동"],"pref":"medium"},"기장군":{"dongs":["기장읍","장안읍","정관읍","일광읍","철마면"],"pref":"avoid"}},"대구광역시":{"중구":{"dongs":["동인동","삼덕동","성내동","대신동","남산동","대봉동","수동","도평동","봉산동","동문동","남성로","태평로","완경동","교동"],"pref":"high"},"동구":{"dongs":["신천동","효목동","도평동","불로동","지저동","동촌동","방촌동","해안동","금강동","상매동","괴전동","미곡동","내곡동","안심동","혁신동","신기동","신무동","율하동","공산동","용계동"],"pref":"medium"},"서구":{"dongs":["내당동","비산동","평리동","상리동","원대동","본리동","중리동","이현동"],"pref":"medium"},"남구":{"dongs":["대명동","봉덕동","이천동","월배동"],"pref":"medium"},"북구":{"dongs":["고성동","칠성동","침산동","산격동","대현동","복현동","검단동","무태동","연경동","구암동","관음동","태전동","팔달동","노원동","동천동","국우동","읍내동","관문동"],"pref":"medium"},"수성구":{"dongs":["범어동","만촌동","수성동","황금동","중동","상동","파동","두산동","지산동","노변동","욱수동","매호동","시지동","삼덕동","사월동","대흥동","고산동"],"pref":"high"},"달서구":{"dongs":["두류동","성당동","죽전동","장기동","용산동","이곡동","신당동","본동","감삼동","월성동","진천동","상인동","도원동","송현동","호림동","대곡동","대천동","파호동"],"pref":"medium"},"달성군":{"dongs":["화원읍","논공읍","다사읍","유가읍","옥포읍","현풍읍","가창면","하빈면","구지면","논공면"],"pref":"low"}},"인천광역시":{"중구":{"dongs":["신흥동","선린동","신생동","북성동","답동","사동","항동","금곡동","경동","중산동","해안동","관동","내동","덕교동","인현동","관교동","율목동","송월동","송학동","신포동","선화동","운남동","운북동","운서동","중산동","덕교동","영종동","용유동","을왕동"],"pref":"medium"},"동구":{"dongs":["만석동","화수동","송현동","화평동","송림동"],"pref":"low"},"미추홀구":{"dongs":["숭의동","용현동","학익동","도화동","주안동","관교동","문학동"],"pref":"medium"},"연수구":{"dongs":["옥련동","선학동","연수동","청학동","동춘동","송도동"],"pref":"high"},"남동구":{"dongs":["구월동","간석동","만수동","장수동","서창동","운연동","논현동","고잔동"],"pref":"medium"},"부평구":{"dongs":["부평동","부개동","산곡동","청천동","갈산동","삼산동","십정동","일신동"],"pref":"high"},"계양구":{"dongs":["계산동","작전동","서운동","임학동","동양동","효성동","병방동","박촌동","선주지동","이화동"],"pref":"medium"},"서구":{"dongs":["가좌동","가정동","석남동","연희동","검암동","경서동","공촌동","불로동","마전동","금곡동","오류동","왕길동","당하동","원창동","대곡동","백석동"],"pref":"medium"},"강화군":{"dongs":["강화읍","선원면","불은면","길상면","화도면","양도면","내가면","하점면","양사면","송해면","교동면","삼산면","서도면"],"pref":"avoid"},"옹진군":{"dongs":["북도면","백령면","대청면","덕적면","자월면","영흥면","연평면"],"pref":"avoid"}},"광주광역시":{"동구":{"dongs":["충장로","동명동","계림동","산수동","지산동","월남동","남동","학동","용산동","궁동","호남동","소태동","황금동","대인동","금남로","내남동","불로동"],"pref":"high"},"서구":{"dongs":["양동","농성동","유덕동","치평동","광천동","서창동","세하동","화정동","마륵동"],"pref":"medium"},"남구":{"dongs":["주월동","효덕동","송하동","진월동","양림동","사직동","월산동","백운동","덕남동","행암동","임암동","봉선동","구동","서동","월성동","지석동","노대동","대촌동","승촌동"],"pref":"medium"},"북구":{"dongs":["중흥동","유동","누문동","북동","임동","신안동","용봉동","동림동","운암동","우산동","풍향동","문흥동","두암동","오치동","삼각동","매곡동","충효동","화암동","연제동","덕의동","금곡동","망월동","일곡동","장등동","건국동","임동"],"pref":"medium"},"광산구":{"dongs":["송정동","도산동","선암동","월곡동","수완동","신창동","비아동","하남동","우산동","운남동","박호동","삼도동","도덕동","본량동","신룡동","장덕동","지죽동","동곡동","평동","산월동","북산동","임곡동","동호동","사호동","쌍암동","복룡동","도호동","명화동","첨단동"],"pref":"medium"}},"대전광역시":{"동구":{"dongs":["판암동","용운동","효동","가양동","자양동","신안동","용전동","성남동","홍도동","삼성동","대동","중동","소제동","가오동","신흥동","추동","정동","인동","대별동","마산동","사성동","삼정동","직동","용계동","이사동","주산동","신상동","신촌동","비룡동","천동","하소동","상소동","오동","대성동","구도동","세천동"],"pref":"medium"},"중구":{"dongs":["은행동","선화동","대흥동","문창동","석교동","대사동","부사동","용두동","오류동","태평동","유천동","문화동","산성동","사정동","목동","중촌동","정생동","안영동","무수동","대평동","호동","옥계동","금동"],"pref":"high"},"서구":{"dongs":["복수동","도마동","정림동","변동","용문동","탄방동","둔산동","괴정동","가장동","내동","갈마동","월평동","만년동","가수원동","흑석동","오동"],"pref":"high"},"유성구":{"dongs":["진잠동","학하동","방동","원신흥동","온천동","노은동","신성동","전민동","구암동","궁동","봉명동","상대동","장동","자운동","원내동","교촌동","덕진동","관평동","수남동","대정동","죽동","신동","방현동","화암동","용계동","장대동","도룡동","반석동","하기동"],"pref":"high"},"대덕구":{"dongs":["오정동","대화동","회덕동","비래동","송촌동","중리동","법동","신대동","덕암동","목상동","석봉동","와동","읍내동","문평동","상서동","하기동","평촌동","장동","부수동","미호동","신일동","황호동","갑동"],"pref":"medium"}},"울산광역시":{"중구":{"dongs":["성남동","복산동","학성동","반구동","태화동","다운동","약사동"],"pref":"high"},"남구":{"dongs":["삼산동","신정동","달동","무거동","옥동","야음동"],"pref":"high"},"동구":{"dongs":["방어동","일산동","화정동","대송동","주전동","서부동","전하동"],"pref":"medium"},"북구":{"dongs":["화봉동","송정동","농소동","명촌동","연암동","달천동","효문동","천곡동"],"pref":"medium"},"울주군":{"dongs":["범서읍","언양읍","온양읍","청량읍","삼남읍","삼동면","상북면","두동면","두서면","온산읍","웅촌면"],"pref":"low"}},"세종특별자치시":{"세종시":{"dongs":["조치원읍","연기면","연동면","부강면","금남면","장군면","연서면","전의면","전동면","소정면","한솔동","나성동","다정동","어진동","대평동","새롬동","도담동","아름동","종촌동","고운동","소담동","보람동","해밀동","합강동","반곡동"],"pref":"high"}},"경기도":{"수원시":{"장안구":{"dongs":["파장동","율전동","정자동","영화동","송죽동","조원동","연무동"],"pref":"high"},"권선구":{"dongs":["권선동","세류동","평동","서둔동","구운동","곡선동","금곡동"],"pref":"medium"},"팔달구":{"dongs":["행궁동","매교동","매산동","고등동","화서동","지동","우만동","인계동"],"pref":"high"},"영통구":{"dongs":["매탄동","원천동","영통동","이의동","하동","광교동","망포동"],"pref":"high"}},"성남시":{"수정구":{"dongs":["신흥동","태평동","수진동","단대동","산성동","양지동","복정동","신촌동","고등동"],"pref":"medium"},"중원구":{"dongs":["성남동","중앙동","금광동","은행동","상대원동","하대원동","도촌동"],"pref":"medium"},"분당구":{"dongs":["분당동","수내동","정자동","서현동","이매동","야탑동","판교동","삼평동","구미동","금곡동","운중동","석운동"],"pref":"high"}},"고양시":{"덕양구":{"dongs":["주교동","행주동","행신동","화정동","원신동","토당동","대덕동","삼송동","원흥동","성사동","효자동","관산동","신평동","고양동"],"pref":"medium"},"일산동구":{"dongs":["마두동","백석동","정발산동","장항동","풍산동","산황동","식사동","중산동"],"pref":"high"},"일산서구":{"dongs":["일산동","탄현동","주엽동","대화동","가좌동"],"pref":"high"}},"용인시":{"처인구":{"dongs":["김량장동","삼가동","남사면","이동읍","원삼면","백암면","양지면","역북동","포곡읍","모현읍","운학동"],"pref":"medium"},"기흥구":{"dongs":["구갈동","기흥동","신갈동","영덕동","청덕동","상갈동","서천동","보정동","마북동","동백동"],"pref":"high"},"수지구":{"dongs":["풍덕천동","신봉동","죽전동","상현동","동천동"],"pref":"high"}},"부천시":{"dongs":["심곡동","소사동","송내동","중동","상동","춘의동","원미동","역곡동","괴안동","도당동","약대동","삼정동","오정동","고강동","성곡동","내동","작동"],"pref":"high"},"안산시":{"상록구":{"dongs":["본오동","부곡동","사동","사이동","반월동","월피동","성포동","일동","이동","안산동","팔곡동"],"pref":"medium"},"단원구":{"dongs":["초지동","원곡동","선부동","신길동","대부동","원시동","와동","고잔동","중앙동","호수동"],"pref":"medium"}},"안양시":{"만안구":{"dongs":["안양동","박달동","석수동"],"pref":"medium"},"동안구":{"dongs":["비산동","관양동","평촌동","호계동","범계동"],"pref":"high"}},"남양주시":{"dongs":["와부읍","진접읍","화도읍","진건읍","오남읍","별내동","다산동","호평동","평내동","금곡동","양정동","이패동","퇴계원읍","별내면","수동면","조안면"],"pref":"medium"},"화성시":{"dongs":["향남읍","남양읍","우정읍","매송면","비봉면","마도면","송산면","서신면","팔탄면","장안면","양감면","정남면","봉담읍","새솔동","능동","반월동","진안동","기안동","동탄동"],"pref":"medium"},"평택시":{"dongs":["평택동","송탄동","서정동","송북동","지산동","비전동","고덕동","세교동","팽성읍","안중읍","포승읍","청북읍","진위면","서탄면","오성면","현덕면","소사벌읍"],"pref":"medium"},"의정부시":{"dongs":["의정부동","호원동","가능동","녹양동","민락동","용현동","자금동","송산동","장암동","신곡동","고산동"],"pref":"medium"},"시흥시":{"dongs":["대야동","신천동","은행동","매화동","목감동","군자동","정왕동","월곶동","과림동","방산동","연성동","능곡동"],"pref":"medium"},"파주시":{"dongs":["문산읍","파주읍","법원읍","조리읍","월롱면","탄현면","광탄면","파평면","적성면","금촌동","야동동","운정동"],"pref":"low"},"김포시":{"dongs":["김포본동","사우동","풍무동","장기동","고촌읍","양촌읍","대곶면","월곶면","하성면","통진읍","걸포동"],"pref":"medium"},"광명시":{"dongs":["광명동","철산동","하안동","소하동"],"pref":"medium"},"광주시":{"dongs":["경안동","송정동","오포읍","초월읍","곤지암읍","도척면","퇴촌면","남종면","남한산성면"],"pref":"low"},"군포시":{"dongs":["군포동","산본동","금정동","당동","당정동","오금동","둔대동","대야미동","속달동"],"pref":"medium"},"하남시":{"dongs":["신장동","천현동","덕풍동","풍산동","초이동","항동","창우동","미사동","감일동","감북동","춘궁동","상산곡동","하산곡동","배알미동","교산동","망월동","당정동","광암동","덕풍동"],"pref":"medium"},"오산시":{"dongs":["오산동","원동","세마동","갈곶동","궐동","청학동","금암동","수청동","양산동","벌음동"],"pref":"low"},"양주시":{"dongs":["양주동","회천동","덕정동","옥정동","회정동","남방동","은현면","백석읍","광적면","장흥면","남면"],"pref":"low"},"이천시":{"dongs":["중리동","창전동","증포동","관고동","송정동","안흥동","부발읍","신둔면","백사면","호법면","마장면","대월면","모가면","율면","장호원읍"],"pref":"low"},"구리시":{"dongs":["교문동","인창동","수택동","아천동","갈매동"],"pref":"medium"},"안성시":{"dongs":["안성동","금산동","공도읍","보개면","양성면","원곡면","일죽면","죽산면","삼죽면","미양면","대덕면","고삼면","서운면"],"pref":"low"},"포천시":{"dongs":["포천동","소흘읍","신북면","군내면","영북면","창수면","일동면","이동면","가산면","관인면","화현면","영중면","내촌면"],"pref":"avoid"},"의왕시":{"dongs":["내손동","고천동","이동","청계동","삼동","오전동","왕곡동","월암동"],"pref":"medium"},"여주시":{"dongs":["여주동","가남읍","점동면","능서면","흥천면","금사면","산북면","대신면","북내면","강천면"],"pref":"avoid"},"양평군":{"dongs":["양평읍","강상면","강하면","양서면","옥천면","서종면","용문면","청운면","양동면","지제면","단월면","개군면"],"pref":"avoid"},"동두천시":{"dongs":["생연동","중앙동","보산동","송내동","탑동동","지행동","안흥동","상봉암동","하봉암동"],"pref":"low"},"과천시":{"dongs":["중앙동","갈현동","별양동","부림동","주암동","문원동","막계동","과천동"],"pref":"medium"},"가평군":{"dongs":["가평읍","설악면","청평면","상면","하면","조종면","북면"],"pref":"avoid"},"연천군":{"dongs":["연천읍","전곡읍","청산면","백학면","미산면","왕징면","군남면","중면","장남면","신서면"],"pref":"avoid"}},"강원특별자치도":{"춘천시":{"dongs":["소양로1가","소양로2가","소양로3가","조운동","약사동","교동","낙원동","죽림동","옥천동","요선동","본부동","퇴계동","후석동","근화동","소양동","우두동","사농동","거두동","동내면","신북읍","서면","사북면","북산면","동산면","남면","신동면","동면"],"pref":"medium"},"원주시":{"dongs":["중앙동","원동","평원동","개운동","명륜동","단구동","일산동","학성동","단계동","우산동","태장동","봉산동","관설동","무실동","반곡동","행구동","흥업면","호저면","지정면","귀래면","부론면","강림면","신림면","소초면","판부면","문막읍"],"pref":"medium"},"강릉시":{"dongs":["홍제동","남문동","성내동","임당동","금학동","용강동","교동","포남동","초당동","송정동","내곡동","노암동","성산면","구정면","강동면","옥계면","사천면","연곡면","주문진읍","왕산면"],"pref":"medium"},"동해시":{"dongs":["천곡동","발한동","용정동","지흥동","구미동","심곡동","신흥동","쇄운동","귀운동","이도동","이기동","묵호동","북삼동","망상동","삼화동","삼흥동","나안동"],"pref":"low"},"태백시":{"dongs":["황지동","장성동","금천동","화전동","혈동","통동","문곡동","소도동","철암동","원동","상사미동","하사미동","창죽동","흥전동"],"pref":"low"},"속초시":{"dongs":["영랑동","동명동","금호동","교동","노학동","조양동","대포동","청호동","중앙동","설악동"],"pref":"medium"},"삼척시":{"dongs":["성내동","교동","남양동","당저동","자원동","도계읍","원덕읍","근덕면","하장면","노곡면","미로면","가곡면","신기면"],"pref":"low"},"홍천군":{"dongs":["홍천읍","화촌면","두촌면","내촌면","서석면","영귀미면","남면","서면","북방면","내면"],"pref":"low"},"횡성군":{"dongs":["횡성읍","우천면","안흥면","둔내면","갑천면","청일면","공근면","서원면","강림면"],"pref":"low"},"영월군":{"dongs":["영월읍","상동읍","중동면","하동면","한반도면","주천면","수주면","무릉도원면","북면","남면","서면"],"pref":"low"},"평창군":{"dongs":["평창읍","미탄면","방림면","대화면","봉평면","용평면","진부면","대관령면"],"pref":"low"},"정선군":{"dongs":["정선읍","고한읍","사북읍","신동읍","남면","북평면","임계면","화암면","여량면"],"pref":"low"},"철원군":{"dongs":["철원읍","김화읍","갈말읍","동송읍","서면","근남면","원남면","임남면"],"pref":"low"},"화천군":{"dongs":["화천읍","간동면","하남면","상서면","사내면"],"pref":"low"},"양구군":{"dongs":["양구읍","국토정중앙면","동면","방산면","해안면"],"pref":"low"},"인제군":{"dongs":["인제읍","남면","북면","기린면","서화면","상남면"],"pref":"low"},"고성군":{"dongs":["간성읍","거진읍","현내면","죽왕면","토성면","수동면"],"pref":"low"},"양양군":{"dongs":["양양읍","서면","손양면","현북면","현남면","강현면"],"pref":"low"}},"충청북도":{"청주시":{"상당구":{"dongs":["북문로1가","북문로2가","북문로3가","서문동","남주동","영동","대성동","문화동","중동","남문로1가","남문로2가","남석동","운동동","금천동","탑동","용담동","용암동","명암동","산성동","대성동","영운동","수동","낭성면","미원면","가덕면","남일면","문의면"],"pref":"high"},"서원구":{"dongs":["사창동","사직동","수곡동","분평동","수암동","산남동","성화동","개신동","죽림동","모충동","남이면","현도면"],"pref":"medium"},"흥덕구":{"dongs":["봉명동","송정동","가경동","복대동","신봉동","신성동","운천동","강서동","비하동","옥산면","강내면","오송읍"],"pref":"high"},"청원구":{"dongs":["우암동","내덕동","율량동","오창읍","북이면","내수읍","옥산면"],"pref":"medium"}},"충주시":{"dongs":["성내동","칼금동","교현동","목행동","지현동","용산동","문화동","안림동","호암동","금릉동","용탄동","연수동","충인동","봉방동","직동","달천동","주덕읍","살미면","수안보면","대소원면","신니면","노은면","앙성면","엄정면","소태면","금가면","동량면","산척면"],"pref":"medium"},"제천시":{"dongs":["교동","의림동","청전동","영천동","명동","고암동","중앙로1가","중앙로2가","신월동","화산동","천남동","장락동","하소동","송학면","청풍면","수산면","덕산면","한수면","백운면","봉양읍","금성면"],"pref":"low"},"보은군":{"dongs":["보은읍","속리산면","장안면","마로면","탄부면","삼승면","수한면","회남면","회인면","내북면","산외면"],"pref":"avoid"},"옥천군":{"dongs":["옥천읍","동이면","안남면","안내면","청성면","청산면","이원면","군서면","군북면"],"pref":"avoid"},"영동군":{"dongs":["영동읍","황간면","추풍령면","매곡면","상촌면","양강면","용산면","양산면","학산면","용화면","심천면"],"pref":"avoid"},"증평군":{"dongs":["증평읍","도안면"],"pref":"low"},"진천군":{"dongs":["진천읍","덕산읍","초평면","문백면","백곡면","이월면"],"pref":"low"},"괴산군":{"dongs":["괴산읍","청천면","청안면","소수면","칠성면","사리면","문광면","장연면","연풍면","불정면","감물면"],"pref":"avoid"},"음성군":{"dongs":["음성읍","금왕읍","소이면","원남면","맹동면","대소면","삼성면","생극면","감곡면"],"pref":"low"},"단양군":{"dongs":["단양읍","매포읍","단성면","대강면","가곡면","영춘면","어상천면","적성면"],"pref":"avoid"}},"충청남도":{"천안시":{"동남구":{"dongs":["원성동","청당동","봉명동","신부동","삼룡동","구성동","구룡동","유량동","신방동","영성동","목천읍","병천면","북면","성남면","수신면","풍세면"],"pref":"high"},"서북구":{"dongs":["두정동","백석동","쌍용동","성정동","차암동","불당동","성거읍","직산읍","성환읍","입장면"],"pref":"high"}},"공주시":{"dongs":["웅진동","금성동","신관동","중학동","산성동","반포면","의당면","정안면","우성면","이인면","탄천면","계룡면","반포면","유구읍","사곡면","신풍면"],"pref":"low"},"보령시":{"dongs":["대천동","궁촌동","주포면","오천면","천북면","청소면","청라면","주교면","미산면","성주면","남포면","주산면","웅천읍"],"pref":"low"},"아산시":{"dongs":["온양동","권곡동","배방읍","탕정면","음봉면","둔포면","영인면","인주면","선장면","도고면","신창면","송악면","염치읍"],"pref":"medium"},"서산시":{"dongs":["동문동","온석동","석남동","예천동","잠홍동","대산읍","인지면","부석면","팔봉면","지곡면","성연면","음암면","고북면","해미면"],"pref":"medium"},"논산시":{"dongs":["취암동","반월동","내동","강경읍","연무읍","성동면","광석면","노성면","상월면","부적면","연산면","벌곡면","양촌면","가야곡면","은진면"],"pref":"low"},"계룡시":{"dongs":["금암동","두마면","엄사면"],"pref":"low"},"당진시":{"dongs":["당진동","송악읍","고대면","석문면","대호지면","정미면","면천면","순성면","우강면","신평면","송산면","합덕읍"],"pref":"medium"},"금산군":{"dongs":["금산읍","금성면","제원면","부리면","군북면","남일면","남이면","진산면","복수면","추부면"],"pref":"avoid"},"부여군":{"dongs":["부여읍","규암면","은산면","외산면","내산면","구룡면","홍산면","옥산면","남면","충화면","양화면","임천면","장암면","세도면","석성면"],"pref":"low"},"서천군":{"dongs":["장항읍","서천읍","마서면","화양면","기산면","한산면","마산면","시초면","문산면","판교면","종천면","비인면"],"pref":"avoid"},"청양군":{"dongs":["청양읍","운곡면","대치면","정산면","목면","청남면","장평면","남양면","화성면","비봉면"],"pref":"avoid"},"홍성군":{"dongs":["홍성읍","홍북읍","광천읍","금마면","홍동면","장곡면","은하면","결성면","서부면","갈산면","구항면"],"pref":"low"},"예산군":{"dongs":["예산읍","삽교읍","대술면","신양면","광시면","대흥면","응봉면","덕산면","봉산면","고덕면","신암면","오가면"],"pref":"low"},"태안군":{"dongs":["태안읍","안면읍","고남면","남면","근흥면","소원면","원북면","이원면"],"pref":"avoid"}},"경상북도":{"포항시":{"남구":{"dongs":["상도동","해도동","송도동","청림동","효자동","대잠동","대도동","대송면","동해면","장기면","구룡포읍","연일읍","오천읍","호미곶면"],"pref":"high"},"북구":{"dongs":["죽도동","두호동","창포동","양덕동","장성동","삼호동","학산동","용흥동","환호동","신광면","청하면","송라면","기계면","기북면","죽장면"],"pref":"medium"}},"경주시":{"dongs":["성동동","동천동","탑동","교동","노동동","노서동","황남동","구황동","광명동","동부동","평동","서부동","성건동","천북면","양북면","감포읍","외동읍","안강읍","건천읍","강동면","내남면","산내면","서면","현곡면","양남면"],"pref":"high"},"김천시":{"dongs":["평화동","남산동","부곡동","양천동","덕곡동","삼락동","대항면","감천면","감문면","어모면","봉산면","대덕면","증산면","아포읍","남면","개령면","조마면","구성면","지례면"],"pref":"medium"},"안동시":{"dongs":["동부동","서부동","중구동","남부동","북후면","서후면","일직면","남후면","남선면","임하면","길안면","임동면","와룡면","예안면","도산면","녹전면","풍산읍","풍천면","풍산면"],"pref":"medium"},"구미시":{"dongs":["원평동","지산동","비산동","송정동","양포동","형곡동","시미동","임수동","도량동","상모동","진미동","옥계동","황상동","광평동","인동동","선산읍","고아읍","선주원남동","산동면","무을면","옥성면","도개면","해평면","장천면"],"pref":"high"},"영주시":{"dongs":["영주동","상망동","하망동","가흥동","휴천동","문수면","이산면","평은면","안정면","봉현면","순흥면","단산면","부석면","풍기읍","장수면"],"pref":"low"},"영천시":{"dongs":["창구동","완산동","문외동","과전동","문내동","금호읍","청통면","신녕면","화산면","화북면","화남면","자양면","임고면","고경면","북안면","대창면"],"pref":"low"},"상주시":{"dongs":["남성동","남장동","서성동","계림동","서문동","남원동","함창읍","중동면","사벌국면","공성면","외서면","낙동면","내서면","모동면","모서면","화동면","화서면","화북면","외남면","청리면","공검면","은척면","화남면"],"pref":"low"},"문경시":{"dongs":["점촌동","영순면","산양면","호계면","가은읍","마성면","농암면","산북면","동로면"],"pref":"low"},"경산시":{"dongs":["중방동","삼북동","중앙동","신천동","사정동","하양읍","압량읍","진량읍","와촌면","자인면","용성면","남산면","남천면"],"pref":"medium"},"군위군":{"dongs":["군위읍","소보면","효령면","부계면","우보면","의흥면","산성면","삼국유사면","고로면"],"pref":"avoid"},"의성군":{"dongs":["의성읍","단촌면","점곡면","사곡면","안계면","봉양면","안평면","금성면","비안면","구천면","춘산면","옥산면","다인면","가음면","단밀면","신평면","안사면"],"pref":"avoid"},"청송군":{"dongs":["청송읍","부남면","현동면","현서면","안덕면","파천면","진보면"],"pref":"avoid"},"영양군":{"dongs":["영양읍","입암면","청기면","일월면","수비면","석보면"],"pref":"avoid"},"영덕군":{"dongs":["영덕읍","강구면","남정면","달산면","지품면","축산면","영해면","병곡면","창수면"],"pref":"avoid"},"청도군":{"dongs":["화양읍","청도읍","각남면","각북면","풍각면","이서면","운문면","금천면","매전면"],"pref":"low"},"고령군":{"dongs":["고령읍","다산면","성산면","쌍림면","우곡면","개진면","덕곡면","운수면"],"pref":"avoid"},"성주군":{"dongs":["성주읍","선남면","용암면","수륜면","벽진면","가천면","월항면","대가면","초전면"],"pref":"low"},"칠곡군":{"dongs":["왜관읍","북삼읍","석적읍","약목면","동명면","가산면","지천면"],"pref":"low"},"예천군":{"dongs":["예천읍","용문면","감천면","보문면","호명면","유천면","용궁면","개포면","지보면","풍양면","효자면","은풍면"],"pref":"avoid"},"봉화군":{"dongs":["봉화읍","봉성면","물야면","춘양면","소천면","석포면","상운면","명호면","재산면","법전면"],"pref":"avoid"},"울진군":{"dongs":["울진읍","평해읍","온정면","죽변면","기성면","원남면","북면","근남면","서면","매화면"],"pref":"avoid"},"울릉군":{"dongs":["울릉읍","서면","북면"],"pref":"avoid"}},"경상남도":{"창원시":{"의창구":{"dongs":["팔용동","명곡동","봉곡동","웅남동","북면","의창동","동읍","대산면"],"pref":"medium"},"성산구":{"dongs":["상남동","사파동","가음정동","성주동","중앙동","석전동","반송동","용호동","월영동"],"pref":"high"},"마산합포구":{"dongs":["완월동","오동동","합포동","산호동","월포동","부림동","현동","진동면","진북면","진전면"],"pref":"low"},"마산회원구":{"dongs":["회원동","양덕동","석전동","합성동","봉암동","내서읍"],"pref":"low"},"진해구":{"dongs":["석동","덕산동","태백동","여좌동","웅천동","웅동","진해동","풍호동","경화동"],"pref":"medium"}},"진주시":{"dongs":["상평동","중앙동","하대동","상대동","초장동","평안동","신안동","이현동","상봉동","하봉동","판문동","문산읍","내동면","정촌면","금곡면","진성면","일반성면","이반성면","사봉면","지수면","대곡면","금산면","집현면","미천면","명석면","대평면","수곡면","천전면"],"pref":"high"},"통영시":{"dongs":["도천동","명정동","무전동","인평동","북신동","태평동","중앙동","정량동","산양읍","용남면","도산면","광도면","욕지면","한산면","사량면"],"pref":"medium"},"사천시":{"dongs":["동서동","선구동","동금동","사천읍","정동면","사남면","용현면","축동면","곤양면","곤명면","서포면"],"pref":"low"},"김해시":{"dongs":["삼안동","불암동","장유동","내외동","부원동","동상동","회현동","삼계동","활천동","어방동","구산동","대청동","주촌면","진영읍","한림면","생림면","상동면","하동면","진례면","이북면","칠산서부동"],"pref":"high"},"밀양시":{"dongs":["내이동","내일동","교동","가곡동","삼문동","용평동","활성동","밀양읍","부북면","상동면","산외면","산내면","단장면","상남면","초동면","이동면","청도면","하남읍"],"pref":"medium"},"거제시":{"dongs":["고현동","상동동","신현읍","아주동","장평동","능포동","장승포동","옥포동","일운면","동부면","남부면","거제면","둔덕면","사등면","연초면","하청면","장목면"],"pref":"medium"},"양산시":{"dongs":["중부동","강서동","삼성동","명곡동","소주동","평산동","남부동","북부동","물금읍","동면","원동면","상북면","하북면","웅상읍"],"pref":"high"},"의령군":{"dongs":["의령읍","가례면","칠곡면","대의면","화정면","용덕면","정곡면","지정면","낙서면","부림면","봉수면","궁류면","유곡면"],"pref":"low"},"함안군":{"dongs":["가야읍","칠원읍","함안면","군북면","법수면","대산면","칠서면","칠북면","산인면","여항면"],"pref":"low"},"창녕군":{"dongs":["창녕읍","남지읍","고암면","성산면","대합면","이방면","유어면","대지면","계성면","영산면","장마면","도천면","길곡면","부곡면"],"pref":"low"},"고성군":{"dongs":["고성읍","삼산면","하일면","하이면","이동면","대가면","영현면","영오면","개천면","구만면","회화면","배둔면","동해면","마암면","죽왕면"],"pref":"low"},"남해군":{"dongs":["남해읍","이동면","상주면","삼동면","미조면","남면","서면","고현면","설천면","창선면"],"pref":"low"},"하동군":{"dongs":["하동읍","화개면","악양면","적량면","횡천면","고전면","금남면","진교면","양보면","북천면","청암면","옥종면","금성면"],"pref":"low"},"산청군":{"dongs":["산청읍","차황면","오부면","생초면","금서면","삼장면","시천면","단성면","신안면","신등면"],"pref":"low"},"함양군":{"dongs":["함양읍","마천면","휴천면","유림면","수동면","지곡면","안의면","서상면","서하면","백전면","병곡면"],"pref":"low"},"거창군":{"dongs":["거창읍","주상면","웅양면","고제면","북상면","위천면","마리면","남상면","남하면","신원면","가조면","가북면"],"pref":"low"},"합천군":{"dongs":["합천읍","봉산면","묘산면","가야면","율곡면","초계면","쌍책면","덕곡면","청덕면","적중면","대양면","쌍백면","삼가면","가회면","대병면","용주면","황강면"],"pref":"low"}},"전북특별자치도":{"전주시":{"dongs":["완산구","덕진구","평화동","서신동","삼천동","효자동","중화산동","인후동","덕진동","금암동","팔복동","우아동","호성동","송천동","조촌동","여의동","반월동","동산동","진북동"],"pref":"high"},"군산시":{"dongs":["중앙로1가","중앙로2가","중앙로3가","신창동","신흥동","금동","영화동","월명동","신영동","개복동","창성동","송창동","장미동","대명동","산북동","소룡동","오룡동","구암동","수송동","미룡동","나운동","미성동","조촌동","경장동","성산면","나포면","임피면","서수면","대야면","개정면","회현면","옥구읍","옥산면","오식도동"],"pref":"medium"},"익산시":{"dongs":["중앙동","평화동","모현동","인화동","남중동","마동","영등동","신흥동","동산동","어양동","팔봉동","삼기면","성당면","용안면","낭산면","망성면","여산면","금마면","왕궁면","춘포면","오산면","함열읍","웅포면","성수면","함라면"],"pref":"medium"},"정읍시":{"dongs":["수성동","연지동","장명동","농소동","시기동","상동","하동","신태인읍","북면","입암면","소성면","고부면","영원면","덕천면","이평면","정우면","태인면","감곡면","옹동면","칠보면","산외면"],"pref":"low"},"남원시":{"dongs":["하정동","동충동","쌍교동","광치동","왕정동","금동","고죽동","도통동","죽항동","향교동","청계동","산곡동","노암동","갈치동","어현동","내척동","식정동","수지면","주천면","보절면","산동면","아영면","송동면","주생면","금지면","대강면","이백면","사매면","덕과면","운봉읍"],"pref":"low"},"김제시":{"dongs":["요촌동","검산동","신풍동","순동","하동","흥사동","월봉동","백학동","교동","복죽동","황산면","수류면","금구면","백산면","용지면","죽산면","성덕면","진봉면","금산면","봉남면","만경읍","청하면","공덕면","청도면"],"pref":"low"},"완주군":{"dongs":["삼례읍","봉동읍","용진읍","이서면","소양면","구이면","고산면","비봉면","운주면","화산면","동상면","경천면"],"pref":"low"},"진안군":{"dongs":["진안읍","용담면","안천면","동향면","상전면","백운면","성수면","마령면","부귀면","정천면","주천면"],"pref":"low"},"무주군":{"dongs":["무주읍","무풍면","설천면","적상면","안성면","부남면"],"pref":"low"},"장수군":{"dongs":["장수읍","산서면","번암면","장계면","천천면","계남면","계북면"],"pref":"low"},"임실군":{"dongs":["임실읍","청웅면","운암면","신평면","성수면","둔남면","신덕면","삼계면","관촌면","강진면","덕치면","지사면"],"pref":"low"},"순창군":{"dongs":["순창읍","인계면","동계면","적성면","유등면","풍산면","금과면","팔덕면","쌍치면","복흥면","구림면","상하면"],"pref":"low"},"고창군":{"dongs":["고창읍","고수면","아산면","무장면","공음면","상하면","해리면","심원면","흥덕면","성내면","성송면","대산면","신림면","부안면"],"pref":"low"},"부안군":{"dongs":["부안읍","주산면","동진면","행안면","계화면","보안면","변산면","진서면","위도면","하서면","줄포면","백산면"],"pref":"low"}},"전라남도":{"목포시":{"dongs":["유달동","중앙동","대의동","금동","북교동","죽교동","산정동","연동","호남동","항동","무안동","대성동","율도동","용당동","상동","하동","광동","옥암동","부흥동","석현동","신흥동","동명동","망운동"],"pref":"medium"},"여수시":{"dongs":["중앙동","동산동","관문동","고소동","광림동","서강동","구봉동","덕충동","문수동","미평동","학동","만덕동","봉강동","소라면","율촌면","화양면","남면","화정면","돌산읍","삼산면"],"pref":"medium"},"순천시":{"dongs":["중앙동","매곡동","삼거동","조례동","연향동","풍덕동","왕지동","덕월동","야흥동","용당동","도사동","승주읍","해룡면","서면","황전면","월등면","주암면","송광면","외서면","낙안면","별량면","상사면"],"pref":"medium"},"나주시":{"dongs":["성북동","금남동","교동","사정동","과원동","남내동","경현동","송월동","중앙동","삼도동","정촌면","금천면","산포면","왕곡면","반남면","공산면","동강면","다시면","문평면","세지면","봉황면","노안면","남평읍","빛가람동"],"pref":"medium"},"광양시":{"dongs":["광양읍","봉강면","옥룡면","옥곡면","진상면","진월면","다압면","골약동","중마동","광영동","태인동","도이동","금호동"],"pref":"medium"},"담양군":{"dongs":["담양읍","봉산면","고서면","가사문학면","창평면","대덕면","무정면","금성면","용면","월산면","수북면","대전면"],"pref":"low"},"곡성군":{"dongs":["곡성읍","오곡면","삼기면","석곡면","목사동면","죽곡면","고달면","옥과면","입면","겸면","오산면"],"pref":"low"},"구례군":{"dongs":["구례읍","문척면","간전면","토지면","마산면","광의면","용방면","산동면"],"pref":"low"},"고흥군":{"dongs":["고흥읍","도양읍","풍양면","도덕면","금산면","도화면","포두면","봉래면","점암면","과역면","남양면","동강면","대서면","두원면","영남면","청정면"],"pref":"low"},"보성군":{"dongs":["보성읍","벌교읍","노동면","미력면","겸백면","율어면","복내면","문덕면","조성면","득량면","회천면","웅치면"],"pref":"low"},"화순군":{"dongs":["화순읍","한천면","춘양면","청풍면","이양면","능주면","도곡면","도암면","이서면","북면","동복면","남면","동면"],"pref":"low"},"장흥군":{"dongs":["장흥읍","관산읍","대덕읍","용산면","안양면","장동면","장평면","유치면","부산면","회진면"],"pref":"low"},"강진군":{"dongs":["강진읍","군동면","칠량면","대구면","도암면","신전면","성전면","작천면","병영면","옴천면","마량면"],"pref":"low"},"해남군":{"dongs":["해남읍","삼산면","화산면","현산면","송지면","북평면","북일면","옥천면","계곡면","마산면","황산면","산이면","문내면","화원면"],"pref":"low"},"영암군":{"dongs":["영암읍","삼호읍","덕진면","금정면","신북면","시종면","도포면","군서면","서호면","학산면","미암면"],"pref":"low"},"무안군":{"dongs":["무안읍","일로읍","삼향읍","몽탄면","청계면","현경면","망운면","해제면","운남면"],"pref":"low"},"함평군":{"dongs":["함평읍","손불면","신광면","학교면","엄다면","대동면","나산면","해보면","월야면"],"pref":"low"},"영광군":{"dongs":["영광읍","백수읍","홍농읍","대마면","묘량면","불갑면","군서면","군남면","염산면","법성면","낙월면"],"pref":"low"},"장성군":{"dongs":["장성읍","진원면","남면","동화면","서삼면","북일면","북이면","북하면","삼서면","삼계면","황룡면","서면"],"pref":"low"},"완도군":{"dongs":["완도읍","금일읍","노화읍","군외면","신지면","고금면","약산면","청산면","소안면","금당면","보길면","생일면"],"pref":"low"},"진도군":{"dongs":["진도읍","군내면","고군면","의신면","임회면","지산면","조도면"],"pref":"low"},"신안군":{"dongs":["지도읍","증도면","임자면","자은면","비금면","도초면","흑산면","하의면","신의면","장산면","안좌면","팔금면","암태면","압해읍"],"pref":"low"}},"제주특별자치도":{"제주시":{"dongs":["일도1동","일도2동","이도1동","이도2동","삼도1동","삼도2동","용담1동","용담2동","건입동","화북동","삼양동","봉개동","아라동","오라동","연동","노형동","외도동","이호동","도두동","추자면","우도면","조천읍","구좌읍","애월읍","한림읍","한경면","대정읍"],"pref":"medium"},"서귀포시":{"dongs":["송산동","정방동","중앙동","천지동","효돈동","영천동","동홍동","서홍동","대륜동","대천동","중문동","예래동","남원읍","표선면","성산읍","대정읍","안덕면","색달동","상예동","하예동"],"pref":"medium"}}}};
+
+let currentData=[], currentMode='local', selectedIndices=new Set(), foundCity=null, currentUnit='dong';
+
+function setUnit(u){
+  currentUnit=u;
+  document.getElementById('optGu').classList.toggle('on',u==='gu');
+  document.getElementById('optDong').classList.toggle('on',u==='dong');
+  updateGuSelect(); updateInfoBox();
+}
+
+function findCity(input){
+  const raw=input.trim(), norm=raw.replace(/시$|군$|구$/,'').trim();
+  const METRO=['서울특별시','부산광역시','대구광역시','인천광역시','광주광역시','대전광역시','울산광역시','세종특별자치시'];
+  for(const prov of METRO){
+    const s=prov.replace(/특별시$|광역시$|특별자치시$/,'');
+    if(raw===prov||raw===s||norm===s)
+      return{province:prov,cityName:prov,cityData:KOREA_DATA.data[prov],hasGu:true,isMetro:true};
+  }
+  for(const[province,cities]of Object.entries(KOREA_DATA.data)){
+    if(METRO.includes(province))continue;
+    for(const[cityName,cityData]of Object.entries(cities)){
+      const cn=cityName.replace(/시$|군$/,'');
+      if(cityName===raw||cn===raw||cn===norm||cityName===norm||cityName.startsWith(norm)||cn.startsWith(norm))
+        return{province,cityName,cityData,hasGu:!cityData.dongs,isMetro:false};
+    }
+  }
+  return null;
+}
+
+function updateCityDatalist(){
+  const dl=document.getElementById('cityList'); dl.innerHTML='';
+  ['서울','부산','대구','인천','광주','대전','울산','세종'].forEach(n=>{
+    const o=document.createElement('option');o.value=n;dl.appendChild(o);
+  });
+  for(const[prov,cities]of Object.entries(KOREA_DATA.data)){
+    if(['서울특별시','부산광역시','대구광역시','인천광역시','광주광역시','대전광역시','울산광역시','세종특별자치시'].includes(prov))continue;
+    for(const c of Object.keys(cities)){const o=document.createElement('option');o.value=c;dl.appendChild(o);}
+  }
+}
+
+function onCityInput(){foundCity=findCity(document.getElementById('localEnd').value);updateInfoBox();updateGuSelect();}
+function onGuChange(){updateInfoBox();}
+
+function updateInfoBox(){
+  const box=document.getElementById('infoBox'),txt=document.getElementById('infoText');
+  if(!foundCity){box.classList.remove('show');return;}
+  const{cityName,hasGu,isMetro}=foundCity;
+  let msg='';
+  if(isMetro||hasGu){
+    if(currentUnit==='gu'){
+      msg=`📍 ${cityName} — 구 ${Object.keys(foundCity.cityData).length}개`;
+    }else{
+      const sel=document.getElementById('guSelect').value;
+      if(sel){msg=`📍 ${cityName} ${sel} — ${foundCity.cityData[sel]?.dongs?.length||0}개 동`;}
+      else{let t=0;Object.values(foundCity.cityData).forEach(g=>t+=(g.dongs||[]).length);msg=`📍 ${cityName} 전체 — ${t}개 읍/면/동`;}
+    }
+  }else{msg=`📍 ${cityName} — ${(foundCity.cityData.dongs||[]).length}개 읍/면/동`;}
+  txt.textContent=msg; box.classList.add('show');
+}
+
+function updateGuSelect(){
+  const wrap=document.getElementById('guSelectWrap'),sel=document.getElementById('guSelect');
+  if(!foundCity||!foundCity.hasGu||currentUnit==='gu'){wrap.classList.add('hidden');return;}
+  wrap.classList.remove('hidden');
+  sel.innerHTML='<option value="">— 전체 구 —</option>';
+  Object.keys(foundCity.cityData).forEach(gu=>{const o=document.createElement('option');o.value=gu;o.textContent=gu;sel.appendChild(o);});
+}
+
+function toggleRgn(el){
+  const cb=el.querySelector('input');
+  cb.checked=!cb.checked;
+  el.classList.toggle('on',cb.checked);
+}
+
+function switchMode(mode){
+  currentMode=mode;
+  document.getElementById('localMode').classList.toggle('hidden',mode!=='local');
+  document.getElementById('regionalMode').classList.toggle('hidden',mode!=='regional');
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('on',(i===0&&mode==='local')||(i===1&&mode==='regional')));
+  document.getElementById('priceEditor').classList.add('hidden');
+  document.getElementById('resultSection').classList.add('hidden');
+}
+
+function generateLocal(){
+  const input=document.getElementById('localEnd').value.trim();
+  const incl=document.getElementById('includePrice').checked;
+  if(!input){alert('목적지를 입력해주세요.');return;}
+  const found=findCity(input);
+  if(!found){alert(`'${input}' 지역을 찾을 수 없습니다.`);return;}
+  currentData=[];const B=25;
+  if(currentUnit==='gu'){
+    if(found.isMetro||found.hasGu)
+      Object.entries(found.cityData).forEach(([n,d])=>currentData.push({name:n,fare:B+Math.floor(Math.random()*16)-5,preference:d.pref||'medium'}));
+    else currentData.push({name:found.cityName,fare:B,preference:found.cityData.pref||'medium'});
+  }else{
+    const sel=document.getElementById('guSelect').value;
+    const entries=(found.isMetro||found.hasGu)?(sel?[[sel,found.cityData[sel]]]:Object.entries(found.cityData)):[[null,found.cityData]];
+    entries.forEach(([,d])=>{
+      (d.dongs||[]).forEach(dong=>{
+        const nm=dong.replace(/\d+동$/,'동');
+        if(!currentData.find(i=>i.name===nm))currentData.push({name:nm,fare:B+Math.floor(Math.random()*20)-8,preference:d.pref||'medium'});
+      });
+    });
+  }
+  if(!currentData.length){alert('데이터가 없습니다.');return;}
+  showPriceEditor();updateResult(incl);
+}
+
+function generateRegional(){
+  const start=document.getElementById('regionalStart').value.trim().replace(/시$|군$|구$/,'');
+  const incl=document.getElementById('regionalIncludePrice').checked;
+  const selected=Array.from(document.querySelectorAll('.rc:checked')).map(c=>c.value);
+  if(!start){alert('출발지를 입력해주세요.');return;}
+  if(!selected.length){alert('지역권을 선택해주세요.');return;}
+  currentData=[];
+  selected.forEach(prov=>{
+    const cities=KOREA_DATA.data[prov];if(!cities)return;
+    Object.entries(cities).forEach(([cn,cd])=>{
+      if(cn.replace(/시$|군$/,'')===start)return;
+      const pref=cd.pref||(typeof cd==='object'&&!cd.dongs?Object.values(cd)[0]?.pref||'medium':'medium');
+      currentData.push({name:cn,fare:Math.floor(Math.random()*100)+30,preference:pref});
+    });
+  });
+  if(!currentData.length){alert('데이터가 없습니다.');return;}
+  showPriceEditor();updateResult(incl);
+}
+
+function showPriceEditor(){
+  const tbl=document.getElementById('priceTable');tbl.innerHTML='';selectedIndices.clear();
+  const bdg={high:'<span class="pr-badge bh">선호</span>',medium:'<span class="pr-badge bm">보통</span>',low:'<span class="pr-badge bl">비선호</span>',avoid:'<span class="pr-badge ba">회피</span>'};
+  const pcls={high:'hi',medium:'md',low:'lo',avoid:'av'};
+  currentData.forEach((item,idx)=>{
+    const row=document.createElement('div');
+    row.className=`pr ${pcls[item.preference]||''}`;
+    row.onclick=e=>{if(e.target.tagName!=='INPUT'&&e.target.tagName!=='BUTTON')toggleSel(idx,row);};
+    row.innerHTML=`<div class="pr-name">${item.name}${bdg[item.preference]||''}</div>
+      <input type="number" id="price_${idx}" value="${item.fare}" min="1" onchange="updatePrice(${idx})">
+      <button class="ic-btn ic-ok" onclick="updatePrice(${idx});event.stopPropagation()">✓</button>
+      <button class="ic-btn ic-del" onclick="deleteSingle(${idx});event.stopPropagation()">✕</button>`;
+    tbl.appendChild(row);
+  });
+  document.getElementById('priceEditor').classList.remove('hidden');
+}
+
+function toggleSel(idx,row){
+  if(selectedIndices.has(idx)){selectedIndices.delete(idx);row.classList.remove('sel');}
+  else{selectedIndices.add(idx);row.classList.add('sel');}
+}
+function deleteSelected(){
+  if(!selectedIndices.size){alert('삭제할 항목을 선택하세요.');return;}
+  currentData=currentData.filter((_,i)=>!selectedIndices.has(i));
+  showPriceEditor();refreshResult();
+}
+function deleteSingle(idx){currentData.splice(idx,1);showPriceEditor();refreshResult();}
+function updatePrice(idx){const v=parseInt(document.getElementById(`price_${idx}`).value);if(v>0){currentData[idx].fare=v;refreshResult();}}
+function adjustPrices(pct){
+  currentData.forEach((item,i)=>{
+    item.fare=Math.max(1,Math.round(item.fare*(1+pct/100)));
+    const inp=document.getElementById(`price_${i}`);if(inp)inp.value=item.fare;
+  });refreshResult();
+}
+function applyCustomPercent(){
+  const v=parseFloat(document.getElementById('adjustPercent').value);
+  if(isNaN(v)||v<-100||v>100){alert('-100 ~ 100 사이 값을 입력하세요.');return;}
+  adjustPrices(v);document.getElementById('adjustPercent').value='';
+}
+function applyBulkPrice(d){const inp=document.getElementById('bulkBasePrice');inp.value=Math.max(1,(parseInt(inp.value)||0)+d);}
+function setBulkPrice(){
+  const v=parseInt(document.getElementById('bulkBasePrice').value);
+  if(!v||v<1){alert('기준가를 입력해주세요.');return;}
+  currentData.forEach((item,i)=>{item.fare=v;const inp=document.getElementById(`price_${i}`);if(inp)inp.value=v;});
+  refreshResult();
+}
+function refreshResult(){
+  updateResult(currentMode==='local'?document.getElementById('includePrice').checked:document.getElementById('regionalIncludePrice').checked);
+}
+function updateResult(incl){
+  document.getElementById('resultArea').value=incl?currentData.map(i=>`${i.name}#${i.fare}`).join(','):currentData.map(i=>i.name).join(',');
+  document.getElementById('resultSection').classList.remove('hidden');
+  const t=currentData.length,avg=t?Math.round(currentData.reduce((s,i)=>s+i.fare,0)/t):0;
+  document.getElementById('totalCount').textContent=t;
+  document.getElementById('avgPrice').textContent=avg;
+}
+function copyResult(){
+  const a=document.getElementById('resultArea');a.select();document.execCommand('copy');alert('복사되었습니다!');
+}
+updateCityDatalist();
+</script>
+</body>
+</html>
