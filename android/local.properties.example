@@ -1,0 +1,9 @@
+# Android Studio가 자동으로 생성하지만, 카카오 키는 직접 추가해야 합니다.
+# 이 파일을 local.properties 로 복사한 뒤 본인 값으로 채우세요.
+
+# Android SDK 경로 (Android Studio가 자동 설정)
+# sdk.dir=/Users/<username>/Library/Android/sdk
+
+# Kakao Developers > 내 애플리케이션 > 앱 키
+KAKAO_NATIVE_APP_KEY=여기에_네이티브앱키_붙여넣기
+KAKAO_REST_API_KEY=여기에_REST_API_키_붙여넣기

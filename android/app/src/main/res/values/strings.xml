@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GPS 시뮬레이터</string>
+    <string name="app_subtitle">대리운전 앱 개발/테스트용</string>
+    <string name="search_hint">주소 또는 장소명 (예: 강남역)</string>
+    <string name="search">검색</string>
+    <string name="start_mock">모의 위치 시작</string>
+    <string name="stop">정지</string>
+    <string name="open_dev_settings">개발자 옵션 열기 (모의 위치 앱 선택)</string>
+    <string name="status_stopped">○ 정지됨</string>
+    <string name="coord_initial">지도를 탭하면 좌표가 표시됩니다.</string>
+    <string name="notif_channel_name">모의 위치 송출</string>
+    <string name="notif_title">GPS 시뮬레이터 동작 중</string>
+</resources>
